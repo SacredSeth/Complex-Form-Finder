@@ -650,7 +650,7 @@ def simple_equation(coefs):
     equation = f""
 
     # remove coefficients of 1
-    if coefs[2] == (1 or -1):
+    if abs(coefs[2]) == 1:
         # add '-' if negative
         to_add = "X^2" if coefs[2] == 1 else "-X^2"
         equation += to_add
@@ -660,9 +660,9 @@ def simple_equation(coefs):
         equation += f"{coefs[2]}X^2"
 
     # remove coefficients of 1
-    if coefs[1] == (1 or -1):
+    if abs(coefs[1]) == 1:
         # add '-' if negative
-        to_add = " + X" if coefs[1] else " - X"
+        to_add = " + X" if coefs[1] == 1 else " - X"
         equation += to_add
 
     # no X term
@@ -726,14 +726,14 @@ print()
 # get convert type
 equa_or_root = string_check("convert from: equation | root: ", ["equation", "root"])
 
-if equa_or_root == "equation":  # convert from equation
+# initialize the lists that will hold the data for the panda
+row_heading_list = []
+real_list = []
+rect_list = []
+polar_list = []
+expo_list = []
 
-    # make lists that will hold the roots in each form
-    real_list = []
-    rect_list = []
-    polar_list = []
-    expo_list = []
-    equation_list = []
+if equa_or_root == "equation":  # convert from equation
 
     # how many equations the user needs to solve
     how_many = num_check("how many equations: ", low=1)
@@ -774,10 +774,10 @@ if equa_or_root == "equation":  # convert from equation
             expo_list.append(expo_form[0])
 
             # append the equation to the list
-            equation_list.append(equation)
+            row_heading_list.append(equation)
 
         # ask if user wants to continue
-        cont = input("press <enter> to continue").lower()
+        cont = input("press <enter> to continue ").lower()
         if cont == "exit":
             break
 
@@ -785,7 +785,7 @@ if equa_or_root == "equation":  # convert from equation
 
     # make a dict that will be used in the panda
     root_dict = {
-        'equation': equation_list,
+        'equation': row_heading_list,
         'real': real_list,
         'rect': rect_list,
         'polar': polar_list,
@@ -812,13 +812,6 @@ else:  # convert from roots
     # ask for amount of roots
     how_many = num_check("how many roots are you converting: ", low=1)
 
-    # initialize the lists
-    root_list = []
-    real_list = []
-    rect_list = []
-    polar_list = []
-    expo_list = []
-
     # loop through every root
     for _ in range(how_many):
 
@@ -834,7 +827,7 @@ else:  # convert from roots
         new_roots = print_roots(root)[0]  # index here for just the first in the list
 
         # append the root to the list
-        root_list.append(new_roots[0])
+        row_heading_list.append(new_roots[0])
 
         # convert to all forms
         list_of_converted_roots = list(convert_roots(root))
@@ -850,7 +843,7 @@ else:  # convert from roots
         expo_list.append(expo_form[0])
 
         # ask user if they want to continue
-        cont = input("press <enter> to continue").lower()
+        cont = input("press <enter> to continue ").lower()
 
         # if user enters "exit" end
         if cont == "exit":
@@ -860,7 +853,7 @@ else:  # convert from roots
 
     # make the dict for the panda
     root_dict = {
-        'original': root_list,
+        'original': row_heading_list,
         'real': real_list,
         'rect': rect_list,
         'polar': polar_list,
