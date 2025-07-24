@@ -646,7 +646,7 @@ def print_roots(list_of_roots):
 def simple_equation(coefs):
     """Simplifies equations for the panda / printing"""
 
-    # define equation outside of inner scopes
+    # define row_header outside of inner scopes
     equation = f""
 
     # remove coefficients of 1
@@ -689,7 +689,7 @@ def simple_equation(coefs):
     else:
         equation += f" - {abs(coefs[0])}"
 
-    # return the string of the equation
+    # return the string of the row_header
     return equation
 
 
@@ -704,7 +704,7 @@ def instruct():
     or
     ax^2 + bx + c to both of it's roots
 
-    Please choose between <e> for equation, or <r> for roots
+    Please choose between <e> for row_header, or <r> for roots
     to switch between the two functions.
     
     You will be asked to enter each value related to the selected form
@@ -722,10 +722,6 @@ instructions = string_check("would you like to see the instructions? ", ["yes", 
 if instructions == "yes":
     instruct()
 
-print()
-# get convert type
-equa_or_root = string_check("convert from: equation | root: ", ["equation", "root"])
-
 # initialize the lists that will hold the data for the panda
 row_heading_list = []
 real_list = []
@@ -733,11 +729,24 @@ rect_list = []
 polar_list = []
 expo_list = []
 
-if equa_or_root == "equation":  # convert from equation
+# valid program modes
+program_modes = ["equation", "root"]
 
-    # how many equations the user needs to solve
-    how_many = num_check("how many equations: ", low=1)
-    print()
+# valid root forms
+forms_list = ['real', 'rect', 'polar', 'exponential']
+
+# holds roots to be added into the dict for panda
+root_holder = []
+
+print()
+# get convert type
+equa_or_root = string_check("convert from: equation | root: ", program_modes)
+
+# how many equations the user needs to solve
+how_many = num_check("how many: ", low=1)
+print()
+
+if equa_or_root == "equation":  # convert from equation
 
     # loop for however many equations
     for _ in range(how_many):
@@ -745,10 +754,11 @@ if equa_or_root == "equation":  # convert from equation
         # get the coefficients from the user
         coefficient_list = get_coefs()
 
-        # simplify the equation for printing
-        equation = simple_equation(coefficient_list)
-        print(f"\nYour equation:", equation)
+        # simplify the row_header for printing
+        row_header = simple_equation(coefficient_list)
+        print(f"\nYour equation:", row_header)
         print()
+        row_heading_title = "equation"
 
         # solve the polynomial and get the roots
         roots = solve_polynomial(coefficient_list)
@@ -757,24 +767,10 @@ if equa_or_root == "equation":  # convert from equation
         if roots[0][-1] == 'rect':
             roots = make_convertable(roots)
 
-        # add each root seperately
+        # append each root to the list
         for root in roots:
-
-            # convert the root into each form
-            list_of_converted_roots = convert_roots(root)
-
-            # make printable and seperate into a different variable
-            real_form, rect_form, polar_form, expo_form = print_roots(list_of_converted_roots)
-
-            # add each form to the correct list
-            # (only the value, not the form because it's irrelavent)
-            real_list.append(real_form[0])
-            rect_list.append(rect_form[0])
-            polar_list.append(polar_form[0])
-            expo_list.append(expo_form[0])
-
-            # append the equation to the list
-            row_heading_list.append(equation)
+            root_holder.append(root)
+            row_heading_list.append(row_header)
 
         # ask if user wants to continue
         cont = input("press <enter> to continue ").lower()
@@ -783,34 +779,7 @@ if equa_or_root == "equation":  # convert from equation
 
     # end of loop
 
-    # make a dict that will be used in the panda
-    root_dict = {
-        'equation': row_heading_list,
-        'real': real_list,
-        'rect': rect_list,
-        'polar': polar_list,
-        'exponential': expo_list
-    }
-
-    # make the panda
-    root_table = pd.DataFrame(root_dict)
-
-    # make the equation the row heading and merge the cells
-    root_table = root_table.set_index('equation', append=True).swaplevel(0,1)
-
-    # make it a string
-    root_table_string = root_table.to_string()
-
-    # print it
-    print(root_table_string)
-
 else:  # convert from roots
-
-    # valid root forms
-    forms_list = ['real', 'rect', 'polar', 'exponential']
-
-    # ask for amount of roots
-    how_many = num_check("how many roots are you converting: ", low=1)
 
     # loop through every root
     for _ in range(how_many):
@@ -824,23 +793,17 @@ else:  # convert from roots
         print()
 
         # printable roots
-        new_roots = print_roots(root)[0]  # index here for just the first in the list
+        row_header = print_roots(root)[0][0]  # index here for just the first in the list
+
+        # print the original
+        print(row_header)
+
+        # set the title of the row heading
+        row_heading_title = "original"
+        row_heading_list.append(row_header)
 
         # append the root to the list
-        row_heading_list.append(new_roots[0])
-
-        # convert to all forms
-        list_of_converted_roots = list(convert_roots(root))
-        print(list_of_converted_roots)
-
-        # make printable
-        real_form, rect_form, polar_form, expo_form = print_roots(list_of_converted_roots)
-
-        # append each form to their respective lists
-        real_list.append(real_form[0])
-        rect_list.append(rect_form[0])
-        polar_list.append(polar_form[0])
-        expo_list.append(expo_form[0])
+        root_holder.append(root)
 
         # ask user if they want to continue
         cont = input("press <enter> to continue ").lower()
@@ -851,21 +814,39 @@ else:  # convert from roots
 
     # end of loop
 
-    # make the dict for the panda
-    root_dict = {
-        'original': row_heading_list,
-        'real': real_list,
-        'rect': rect_list,
-        'polar': polar_list,
-        'exponential': expo_list
-    }
+# add each root seperately
+for root in root_holder:
 
-    # make the panda
-    root_table = pd.DataFrame(root_dict)
+    # convert the root into each form
+    list_of_converted_roots = list(convert_roots(root))
 
-    # remove the index
-    root_table_string = root_table.to_string(index=False)
+    # make printable and seperate into a different variable
+    real_form, rect_form, polar_form, expo_form = print_roots(list_of_converted_roots)
 
-    # print it
-    print("\n")
-    print(root_table_string)
+    # add each form to the correct list
+    # (only the value, not the form because it's irrelavent)
+    real_list.append(real_form[0])
+    rect_list.append(rect_form[0])
+    polar_list.append(polar_form[0])
+    expo_list.append(expo_form[0])
+
+# make a dict that will be used in the panda
+root_dict = {
+    'equation': row_heading_list,
+    'real': real_list,
+    'rect': rect_list,
+    'polar': polar_list,
+    'exponential': expo_list
+}
+
+# make the panda
+root_table = pd.DataFrame(root_dict)
+
+# make the row_header the row heading and merge the cells
+root_table = root_table.set_index('equation', append=True).swaplevel(0,1)
+
+# make it a string
+root_table_string = root_table.to_string()
+
+# print it
+print(root_table_string)
